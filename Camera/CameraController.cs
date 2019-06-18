@@ -115,20 +115,6 @@ public class CameraController : MonoBehaviour
 
     void HandleAnimations()
     {
-        GetComponent<Animator>().SetBool("firstPersonEnabled", InFirstPerson());
-    }
-
-    // If hands and arms have clipping issues, even with near clipping plane set to 0.01,
-    // Check if the skinned mesh renderer has "Update When Offscreen" enabled.
-    // This should fix the issue.
-    // https://forum.unity.com/threads/can-i-disable-culling.43916/
-    void HandleFirstPersonIK()
-    {
-        IKHandler ikLeftArm = new IKHandler(GetComponent<Animator>(), IKBone.LEFT_ARM);
-        IKHandler ikRightArm = new IKHandler(GetComponent<Animator>(), IKBone.RIGHT_ARM);
-
-        ikLeftArm.LookAt(camera.transform.rotation, firstPersonLeftArmIKOffset);
-        ikRightArm.LookAt(camera.transform.rotation, firstPersonRightArmIKOffset);
     }
 
     public bool InFirstPerson()

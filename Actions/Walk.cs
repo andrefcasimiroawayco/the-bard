@@ -24,13 +24,14 @@ public class Walk : Movement
     Animator animator => entity.GetComponent<Animator>();
     Rigidbody rigidbody => entity.GetComponent<Rigidbody>();
     CapsuleCollider capsuleCollider => entity.GetComponent<CapsuleCollider>();
+    Controller controller => entity.GetComponent<Controller>();
 
     // Internal values
     WalkProps props;
     private float z, x;
 
 
-    public Walk(GameObject entity, WalkProps props) {
+    public Walk (GameObject entity, WalkProps props) {
       this.entity = entity;
       this.props = props;
     }
@@ -39,11 +40,18 @@ public class Walk : Movement
     {
       RigidbodyUtils.ClampNegativeVelocity(rigidbody);
 
-      x = Input.GetAxis("Horizontal");
-      z = Input.GetAxis("Vertical");
+      bool pressedX = Input.GetAxis("Horizontal") != 0;
+      bool pressedZ = Input.GetAxis("Vertical") != 0;
 
+      x = pressedX ? Input.GetAxis("Horizontal") * 0.5f : 0f;
+      z = pressedZ ? Input.GetAxis("Vertical") * 0.5f : 0f;
+
+      controller.SetCurrentX(x);
+      controller.SetCurrentZ(z);
+
+      float m_speed = pressedX && pressedZ ? 1f : props.speed;
       RigidbodyUtils.ApplyDirection(
-        x, z, entity.transform, rigidbody, props.speed, props.maxSpeed
+        x, z, entity.transform, rigidbody, m_speed, props.maxSpeed
       );
     }
 
