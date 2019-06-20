@@ -33,6 +33,10 @@ public class CameraController : MonoBehaviour
     [Header("IK Offsets")]
     public Vector3 firstPersonLeftArmIKOffset = Vector3.zero;
     public Vector3 firstPersonRightArmIKOffset = Vector3.zero;
+    public Vector3 chestIkOffset = new Vector3(-1.6f, -86.3f, -85.48f);
+
+    // IKs
+    IKHandler chestIK;
 
     void Awake()
     {
@@ -47,6 +51,9 @@ public class CameraController : MonoBehaviour
         camera.transform.position = headPosition;
 
         originalCameraPosition = camera.transform.localPosition;
+
+        // Init iks
+        chestIK = new IKHandler(this.GetComponent<Animator>(), IKBone.CHEST);
     }
 
     void Update()
@@ -63,7 +70,8 @@ public class CameraController : MonoBehaviour
 
     void LateUpdate()
     {
-        camera.transform.localRotation = ClampRotationAroundXAxis(camera.transform.localRotation, MinimumX, MaximumX);
+        camera.transform.localRotation =
+            QuaternionUtils.ClampRotationAroundXAxis(camera.transform.localRotation, MinimumX, MaximumX);
 
         float step = GetMouseScroll() * zoomSpeed;
 
@@ -111,44 +119,22 @@ public class CameraController : MonoBehaviour
             camera.transform.position = target - (camera.transform.rotation * Vector3.forward * finalDistance);
         }
 
+        // After camera logic, handle camera owner IK
+        HandleIK();
+    }
+
+    void HandleIK()
+    {
+        chestIK.LookAt(camera.transform.rotation, chestIkOffset);
     }
 
     void HandleAnimations()
     {
-        GetComponent<Animator>().SetBool("firstPersonEnabled", InFirstPerson());
-    }
-
-    // If hands and arms have clipping issues, even with near clipping plane set to 0.01,
-    // Check if the skinned mesh renderer has "Update When Offscreen" enabled.
-    // This should fix the issue.
-    // https://forum.unity.com/threads/can-i-disable-culling.43916/
-    void HandleFirstPersonIK()
-    {
-        IKHandler ikLeftArm = new IKHandler(GetComponent<Animator>(), IKBone.LEFT_ARM);
-        IKHandler ikRightArm = new IKHandler(GetComponent<Animator>(), IKBone.RIGHT_ARM);
-
-        ikLeftArm.LookAt(camera.transform.rotation, firstPersonLeftArmIKOffset);
-        ikRightArm.LookAt(camera.transform.rotation, firstPersonRightArmIKOffset);
     }
 
     public bool InFirstPerson()
     {
         return distance == 0;
-    }
-
-
-    public Quaternion ClampRotationAroundXAxis(Quaternion q, float min, float max)
-    {
-        q.x /= q.w;
-        q.y /= q.w;
-        q.z /= q.w;
-        q.w = 1f;
-
-        float angleX = 2f * Mathf.Rad2Deg * Mathf.Atan(q.x);
-        angleX = Mathf.Clamp(angleX, min, max);
-        q.x = Mathf.Tan(0.5f * Mathf.Deg2Rad * angleX);
-
-        return q;
     }
 
     public static float GetMouseScroll()
