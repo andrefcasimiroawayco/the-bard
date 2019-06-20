@@ -5,11 +5,7 @@ using UnityEngine;
 
 public abstract class Movement
 {
-    GameObject entity;
-
-    public Movement()
-    {
-    }
+    public Movement() {}
 
     public abstract void Dispatch();
     public abstract void OnFinished();
